@@ -13,9 +13,13 @@ services:
   db:
     image: mysql:8.0.28
     ports:
-      - "30000:3306"
+      - "3366:3366"
+    expose:
+      - "3366"
     environment:
       MYSQL_ROOT_PASSWORD: root
-    #volumes:
-      #- ./db:/docker-entrypoint-initdb.d/:ro
+    volumes:
+      - ./db-schema:/docker-entrypoint-initdb.d
+      - ./mysql-data:/var/lib/mysql
+    command: mysqld --sql_mode=""
     container_name: "flask-db"
