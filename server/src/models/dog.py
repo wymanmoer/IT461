@@ -20,32 +20,24 @@ class Dog():
         clean_dogs = self.sanitize(dogs)
         if len(dogs) != len(clean_dogs):
             return False
-        db = Db()
-        connection = db.connect()
-        try:
-            for dog in clean_dogs:
-                sql = "INSERT INTO dogs(name) VALUES(%s)"
-                db.execute(sql, dog['name'])
-        except:
-            connection.rollback()
-        else:
-            connection.commit()
-        connection.close()
+        queries = []
+        for dog in clean_dogs:
+            sql = "INSERT INTO dogs(name) VALUES(%s)"
+            queries.append({"sql": sql, "bind": dog['name']})
+        db = Db.get_instance()
+        result = db.transactional(queries)
         return dogs
 
     def get(self, filters=None):
-        db = Db()
-        connection = db.connect()
+        db = Db.get_instance()
         if filters is not None:
             if 'id' in filters:
                 sql = "SELECT * FROM dogs WHERE id = %s"
                 dog = db.fetchone(sql, filters['id'])
-                connection.close()
                 return dog
             # if another filter
         sql = "SELECT * FROM dogs ORDER BY name"
         dogs = db.fetchall(sql)
-        connection.close()
         return dogs
 
     def put(self, dogs):
@@ -54,34 +46,24 @@ class Dog():
         clean_dogs = self.sanitize(dogs)
         if len(dogs) != len(clean_dogs):
             return False
-        db = Db()
-        connection = db.connect()
-        try:
-            for dog in clean_dogs:
-                sql = "UPDATE dogs SET name = %s WHERE id = %s"
-                db.execute(sql, (dog['name'], dog['id']))
-        except:
-            connection.rollback()
-        else:
-            connection.commit()
-        connection.close()
+        queries = []
+        for dog in clean_dogs:
+            sql = "UPDATE dogs SET name = %s WHERE id = %s"
+            queries.append({"sql": sql, "bind": (dog['name'], dog['id'])})
+        db = Db.get_instance()
+        db.transactional(queries)
         return dogs
 
     def delete(self, dogs):
         counter = 0
         if not isinstance(dogs, (list, tuple)):
             dogs = [dogs]
-        db = Db()
-        connection = db.connect()
-        try:
-            placeholder = []
-            for dog in dogs:
-                placeholder.append('%s')
-            sql = "DELETE FROM dogs WHERE id IN (" + ", ".join(placeholder) + ")"
-            counter = db.execute(sql, dogs)
-        except:
-            connection.rollback()
-        else:
-            connection.commit()
-        connection.close()
+        placeholder = []
+        queries = []
+        for dog in dogs:
+            placeholder.append('%s')
+        sql = "DELETE FROM dogs WHERE id IN (" + ", ".join(placeholder) + ")"
+        queries.append({"sql": sql, "bind": dogs})
+        db = Db.get_instance()
+        counter = db.transactional(queries)
         return counter
