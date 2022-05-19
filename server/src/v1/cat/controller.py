@@ -17,12 +17,8 @@ class CatController(BaseController):
             }), 400)
         return jsonify(resp)
 
-    def check(self, cat_id, filters=None):
-        if filters is not None:
-            filters['id'] = cat_id
-        else:
-            filters = {"id": cat_id}
-        cat = self._instance.read(filters)
+    def check(self, cat_id):
+        cat = self._instance.read({"id": cat_id})
         if cat is None:
             return make_response(jsonify({"error": "Cat id not found."}), 404)
         return cat
@@ -38,14 +34,14 @@ class CatController(BaseController):
             return jsonify(cat)
         filters['offset'] = int(request.args['offset']) if 'offset' in request.args else 0
         filters['limit'] = int(request.args['limit']) if 'limit' in request.args else 5
-        cats = self._instance.read(filters)
+        cat = self._instance.read(filters)
         total = self._instance.read(filters, True)
         return jsonify({
             'metadata': {
                 'total': total,
                 'links': self.build_links(total, filters['offset'], filters['limit'])
             },
-            'data': cats
+            'data': cat
         })
 
     def put(self, cat_id=None):
