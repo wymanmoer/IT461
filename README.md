@@ -1,4 +1,2 @@
 # IT461
-Flask in a docker
-# Author
-Janmoer N. Deligero
+Flask in a docker Author: Daryl Chavez Aldemeta
