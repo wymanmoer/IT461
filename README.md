@@ -1,4 +1,4 @@
 # IT461
 Flask in a docker
 
-AUTHOR: Janmoer Nagas Deligero
+AUTHOR: JANMOER NAGAS DELIGERO
