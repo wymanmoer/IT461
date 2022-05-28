@@ -1,4 +1,4 @@
 # IT461
 Flask in a docker
 
-AUTHOR: JONAH MARC R. BATOMALAQUE
+AUTHOR: Janmoer Nagas Deligero

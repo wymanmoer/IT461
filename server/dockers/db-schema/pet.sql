@@ -9,6 +9,7 @@ CREATE TABLE dogs(
     INDEX (name)
 );
 
+<<<<<<< HEAD
 CREATE TABLE cats(
     id INT NOT NULL AUTO_INCREMENT,
     name VARCHAR(200) NOT NULL,
@@ -16,6 +17,8 @@ CREATE TABLE cats(
     INDEX (name)
 );
 
+=======
+>>>>>>> upstream/master
 CREATE TABLE users(
     id INT NOT NULL AUTO_INCREMENT,
     username VARCHAR(200) NOT NULL,
@@ -23,5 +26,8 @@ CREATE TABLE users(
     PRIMARY KEY (id),
     INDEX (username)
 );
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/master
 INSERT INTO users (username, password) VALUES ('admin', 'admin');
