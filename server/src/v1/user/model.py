@@ -1,57 +1,87 @@
 from db import Db
 
+class UserModel():
+    def sanitize(self, users):
+        if not isinstance(users, (list, tuple)):
+            users = [users]
+        clean_users = []
+        for user in users:
+            if not isinstance(user, dict):
+                continue
+            if not ('id' in user and 'username' in user):
+                continue
+            clean_users.append(user)
+        return clean_users
 
-class UserModel:
+    def create(self, users):
+        if not isinstance(users, (list, tuple)):
+            users = [users]
+        clean_users = self.sanitize(users)
+        if len(users) != len(clean_users):
+            return False
+        queries = []
+        for user in clean_users:
+            sql = "INSERT INTO users(username) VALUES(%s)"
+            queries.append({"sql": sql, "bind": user['username']})
+        db = Db.get_instance()
+        result = db.transactional(queries)
+        return users
+
     def read(self, filters=None, count_only=False):
         db = Db.get_instance()
-
+        fields = ['*']
+        offset = 0
+        limit = 5
+        if filters is not None:
+            if 'fields' in filters:
+                tmp_fields = []
+                for field in filters['fields']:
+                    if field in ['id', 'username']:
+                        tmp_fields.append(field)
+                if len(tmp_fields) > 0:
+                    fields = tmp_fields
+            if 'id' in filters:
+                sql = "SELECT " + ','.join(fields) + " FROM users WHERE id = %s"
+                user = db.fetchone(sql, filters['id'])
+                return user
+            if 'offset' in filters:
+                offset = int(filters['offset'])
+            if 'limit' in filters:
+                limit = int(filters['limit'])
+        cols = 'COUNT(*) AS total' if count_only else ','.join(fields)
+        sql = "SELECT " + cols + " FROM users"
+        if not count_only:
+            sql += " ORDER BY username LIMIT " + str(offset) + ", " + str(limit)
         if count_only:
-            row = db.fetchone("SELECT COUNT(*) AS total FROM users")
-            return row["total"] if row else 0
+            row = db.fetchone(sql)
+            return row['total'] if row else 0
+        else:
+            return db.fetchall(sql)
 
-        if not filters:
-            filters = {}
+    def update(self, users):
+        if not isinstance(users, (list, tuple)):
+            users = [users]
+        clean_users = self.sanitize(users)
+        if len(users) != len(clean_users):
+            return False
+        queries = []
+        for user in clean_users:
+            sql = "UPDATE users SET username = %s WHERE id = %s"
+            queries.append({"sql": sql, "bind": (user['username'], user['id'])})
+        db = Db.get_instance()
+        db.transactional(queries)
+        return users
 
-        fields = self._get_fields(filters)
-
-        if id := filters.get("id"):
-            sql = "SELECT " + ",".join(fields) + " FROM users WHERE id = %s"
-            return db.fetchone(sql, id)
-
-        query_by = {}
-        if username := filters.get("username"):
-            query_by["username"] = username
-
-        if password := filters.get("password"):
-            query_by["password"] = password
-
-        cols = ",".join(fields)
-        sql = f"SELECT {cols} FROM users"
-
-        has_filters = bool(len(query_by))
-        if has_filters:
-            queries = [f"{col} = %s" for col in query_by.keys()]
-            sql += f' WHERE ({ " AND ".join(queries) })'
-
-        sql += (
-            f" ORDER BY id LIMIT {filters.get('offset', 0)}, {filters.get('limit', 5)}"
-        )
-
-        if has_filters:
-            bind = [value for value in query_by.values()]
-            return db.fetchall(sql, bind)
-
-        return db.fetchall(sql)
-
-    def _get_fields(self, filters):
-        default_fields = ["*"]
-
-        if "fields" not in filters:
-            return default_fields
-
-        acceptable_fields = {"id", "username", "password"}
-        fields = list(
-            filter(lambda field: field in acceptable_fields, filters["fields"])
-        )
-
-        return fields if len(fields) else default_fields
+    def delete(self, users):
+        counter = 0
+        if not isinstance(users, (list, tuple)):
+            users = [users]
+        placeholder = []
+        queries = []
+        for user in users:
+            placeholder.append('%s')
+        sql = "DELETE FROM users WHERE id IN (" + ", ".join(placeholder) + ")"
+        queries.append({"sql": sql, "bind": users})
+        db = Db.get_instance()
+        counter = db.transactional(queries)
+        return counter

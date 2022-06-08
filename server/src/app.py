@@ -1,18 +1,8 @@
-<<<<<<< HEAD
-from flask import Flask, request, jsonify, g
-from v1.dog.router import DogRouter
-from v1.cat.router import CatRouter
-from v1.auth import login as auth_login, verify_token as auth_verify_token
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'I/L0ve/CIT-U'
-
-app.register_blueprint(DogRouter.handler())
-app.register_blueprint(CatRouter.handler())
-=======
 import json
 from flask import Flask, request, jsonify, g
 from v1.dog.router import DogRouter
+from v1.cat.router import CatRouter
+from v1.user.router import UserRouter
 from v1.auth import login as auth_login, verify_token as auth_verify_token
 from flask_cors import CORS
 
@@ -27,7 +17,8 @@ CORS(app, resources={r"*": {"origins": [
 ]}},  supports_credentials=True)
 
 app.register_blueprint(DogRouter.handler())
->>>>>>> upstream/master
+app.register_blueprint(CatRouter.handler())
+app.register_blueprint(UserRouter.handler())
 
 @app.route('/v1/login', methods=['POST'])
 def login():
@@ -38,13 +29,10 @@ def login():
             return jsonify({'token': token})
     return jsonify({'message': 'Invalid username or password'}), 403
 
-<<<<<<< HEAD
-=======
 @app.route('/v1/login')
 def home():
     return jsonify({'message': 'hello world'})
 
->>>>>>> upstream/master
 @app.route('/v1/verify-token')
 def verify_token():
     token = request.args.get('token')
